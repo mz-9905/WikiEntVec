@@ -1,3 +1,9 @@
+"""
+2025-02-09 update
+    - update for gensim 4.x
+    - add save_model option to save model in .model format
+"""
+
 import re
 import argparse
 from pathlib import Path
@@ -20,21 +26,23 @@ def main(args):
     word_vectors_file = output_dir / 'word_vectors.txt'
     entity_vectors_file = output_dir / 'entity_vectors.txt'
     all_vectors_file = output_dir / 'all_vectors.txt'
+    model_file = output_dir / 'word2vec.model'
 
     logger.info('training the model')
     model = Word2Vec(sentences=LineSentence(args.corpus_file),
-                     size=args.embed_size,
+                     vector_size=args.embed_size,
                      window=args.window_size,
                      negative=args.sample_size,
                      min_count=args.min_count,
                      workers=args.workers,
                      sg=1,
                      hs=0,
-                     iter=args.epoch)
+                     epochs=args.epoch)
 
     word_vocab_size = 0
     entity_vocab_size = 0
-    for token in model.wv.vocab:
+
+    for token in model.wv.index_to_key:
         if regex_entity.match(token):
             entity_vocab_size += 1
         else:
@@ -56,7 +64,7 @@ def main(args):
         print(total_vocab_size, args.embed_size, file=fo_all)
 
         # write tokens and vectors
-        for (token, _) in sorted(model.wv.vocab.items(), key=lambda t: -t[1].count):
+        for token in sorted(model.wv.index_to_key, key=lambda t: -model.wv.get_vecattr(t, 'count')):
             vector = model.wv[token]
 
             if regex_entity.match(token):
@@ -65,6 +73,11 @@ def main(args):
                 print(token, *vector, file=fo_word)
 
             print(token, *vector, file=fo_all)
+
+    # save the model
+    if args.save_model:
+        logger.info(f'saving model to {model_file}')
+        model.save(model_file.as_posix())
 
 
 if __name__ == "__main__":
@@ -86,5 +99,7 @@ if __name__ == "__main__":
         help='number of training epochs [5]')
     parser.add_argument('--workers', type=int, default=2,
         help='Use these many worker threads to train the model [2]')
+    parser.add_argument('--save_model', action='store_true',
+        help='whether to save the trained model in .model format')
     args = parser.parse_args()
     main(args)
