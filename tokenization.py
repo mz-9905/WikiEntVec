@@ -1,5 +1,8 @@
+"""
+2025-02-09 update
+    - Faster tokenize_words method of MecabTokenizer class
+"""
 import re
-
 
 class BaseTokenizer(object):
     def __init__(self, do_lower_case=False, preserved_pattern=None):
@@ -62,15 +65,10 @@ class MeCabTokenizer(BaseTokenizer):
         self.mecab = MeCab.Tagger(self.mecab_option)
 
     def tokenize_words(self, text):
-        tokens = []
-        for line in self.mecab.parse(text).split('\n'):
-            if line == 'EOS':
-                break
-
-            token = line.split('\t')[0].strip()
-            if not token:
-                continue
-
-            tokens.append(token)
-
+        lines = self.mecab.parse(text).split('\n')
+        try:
+            lines = lines[:lines.index('EOS')]
+        except ValueError:
+            pass
+        tokens = [line.split('\t')[0].strip() for line in lines if line.split('\t')[0].strip()]
         return tokens

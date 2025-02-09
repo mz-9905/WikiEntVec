@@ -4,6 +4,8 @@ import gzip
 import argparse
 from collections import OrderedDict
 
+from tqdm import tqdm
+
 from logzero import logger
 
 from tokenization import RegExpTokenizer, NLTKTokenizer, MeCabTokenizer
@@ -54,7 +56,7 @@ def main(args):
     n_processed = 0
     with gzip.open(args.cirrus_file, 'rt') as fi, \
          open(args.output_file, 'wt') as fo:
-        for line in fi:
+        for line in tqdm(fi):
             json_item = json.loads(line)
             if 'title' not in json_item:
                 continue
@@ -107,6 +109,7 @@ def main(args):
             print(text, file=fo)
             n_processed += 1
 
+"""
             if n_processed <= 10:
                 logger.info('*** Example ***')
                 example_text = text[:400] + '...' if len(text) > 400 else text
@@ -117,7 +120,7 @@ def main(args):
 
     if n_processed % 10000 != 0:
         logger.info(f'processed: {n_processed}')
-
+"""
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
