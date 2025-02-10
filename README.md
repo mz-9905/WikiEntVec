@@ -1,5 +1,11 @@
 # Wikipedia Entity Vectors
 
+## Attention
+
+**This repository is a forked version.**
+The original repository can be accessed via [this link](https://github.com/singletongue/WikiEntVec).
+
+The following is the original README.
 
 ## Introduction
 
